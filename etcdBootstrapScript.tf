@@ -16,5 +16,5 @@ resource "local_file" "template" {
 
 # Query the discovery url with the size of the cluster. The response will be a unique code we ned to parse into the bootstrap script (script.sh)
 data "http" "etcd-join" {
-  url = "https://discovery.etcd.io/new?size=3"
+  url = "https://discovery.etcd.io/new?size=${var.cluster_size}"
 }

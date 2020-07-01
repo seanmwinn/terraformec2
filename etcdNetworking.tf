@@ -1,7 +1,7 @@
 # Create a new elastic IP to be used by the nat gateway
 resource "aws_eip" "nat-eip" {
   vpc      = true
-  
+
 }
 
 # Create NAT gateway so private subnets can route outside the VPC
@@ -22,25 +22,25 @@ resource "aws_route_table" "etcd-private" {
 
 # Associate the aforementioned route table for the private subnet
 resource "aws_route_table_association" "etcd-lon1" {
-  subnet_id = "${aws_subnet.lon-1.id}"
+  subnet_id = "${aws_subnet.etcd-subnet-1.id}"
   route_table_id = "${aws_route_table.etcd-private.id}"
 }
 
 resource "aws_route_table_association" "etcd-lon2" {
-  subnet_id = "${aws_subnet.lon-2.id}"
+  subnet_id = "${aws_subnet.etcd-subnet-2.id}"
   route_table_id = "${aws_route_table.etcd-private.id}"
 }
 
 resource "aws_route_table_association" "etcd-lon3" {
-  subnet_id = "${aws_subnet.lon-3.id}"
+  subnet_id = "${aws_subnet.etcd-subnet-3.id}"
   route_table_id = "${aws_route_table.etcd-private.id}"
 }
 
 # Create three subnets in the london AWS region
-resource "aws_subnet" "lon-1" {
+resource "aws_subnet" "etcd-subnet-1" {
   vpc_id     = "${aws_vpc.etcd.id}"
   cidr_block = "10.0.1.0/24"
-  availability_zone = "eu-west-2a"
+  availability_zone = "us-east-1a"
   map_public_ip_on_launch = "false"
 
   tags = {
@@ -48,10 +48,10 @@ resource "aws_subnet" "lon-1" {
   }
 }
 
-resource "aws_subnet" "lon-2" {
+resource "aws_subnet" "etcd-subnet-2" {
   vpc_id     = "${aws_vpc.etcd.id}"
   cidr_block = "10.0.2.0/24"
-  availability_zone = "eu-west-2b"
+  availability_zone = "us-east-1b"
   map_public_ip_on_launch = "false"
 
   tags = {
@@ -59,10 +59,10 @@ resource "aws_subnet" "lon-2" {
   }
 }
 
-resource "aws_subnet" "lon-3" {
+resource "aws_subnet" "etcd-subnet-3" {
   vpc_id     = "${aws_vpc.etcd.id}"
   cidr_block = "10.0.3.0/24"
-  availability_zone = "eu-west-2c"
+  availability_zone = "us-east-1c"
   map_public_ip_on_launch = "false"
 
   tags = {
@@ -74,8 +74,8 @@ resource "aws_subnet" "lon-3" {
 resource "aws_subnet" "bastion" {
   vpc_id     = "${aws_vpc.etcd.id}"
   cidr_block = "10.0.4.0/24"
-  availability_zone = "eu-west-2a"
-  
+  availability_zone = "us-east-1d"
+
   tags = {
     Name = "Bastion"
   }
@@ -83,16 +83,16 @@ resource "aws_subnet" "bastion" {
 
 # Create network interfaces for each instance, connecting to the respective network
 resource "aws_network_interface" "etcd1-eth0" {
-  subnet_id   = "${aws_subnet.lon-1.id}"
+  subnet_id   = "${aws_subnet.etcd-subnet-1.id}"
   private_ips = ["10.0.1.100"]
   security_groups = ["${aws_security_group.default.id}"]
-  
+
   tags = {
     Name = "primary_network_interface"
   }
 }
 resource "aws_network_interface" "etcd2-eth0" {
-  subnet_id   = "${aws_subnet.lon-2.id}"
+  subnet_id   = "${aws_subnet.etcd-subnet-2.id}"
   private_ips = ["10.0.2.100"]
   security_groups = ["${aws_security_group.default.id}"]
 
@@ -102,7 +102,7 @@ resource "aws_network_interface" "etcd2-eth0" {
 }
 
 resource "aws_network_interface" "etcd3-eth0" {
-  subnet_id   = "${aws_subnet.lon-3.id}"
+  subnet_id   = "${aws_subnet.etcd-subnet-3.id}"
   private_ips = ["10.0.3.100"]
   security_groups = ["${aws_security_group.default.id}"]
 
@@ -116,24 +116,24 @@ resource "aws_alb" "alb" {
   name            = "terraform-example-alb"
   load_balancer_type = "application"
   security_groups = ["${aws_security_group.default.id}"]
-  subnets         = "${list("${aws_subnet.lon-1.id}", "${aws_subnet.lon-2.id}", "${aws_subnet.lon-3.id}")}"
+  subnets         = "${list("${aws_subnet.etcd-subnet-1.id}", "${aws_subnet.etcd-subnet-2.id}", "${aws_subnet.etcd-subnet-3.id}")}"
   internal = true
 }
 
 # Create the target group for the ALB
 resource "aws_alb_target_group" "group" {
-  name     = "terraform-example-alb-target"
+  name     = "terraform-etcd-target"
   port     = "2379"
   protocol = "HTTP"
   vpc_id   = "${aws_vpc.etcd.id}"
-  
-  health_check {    
-  healthy_threshold   = 3    
-  unhealthy_threshold = 10    
-  timeout             = 5    
-  interval            = 10    
+
+  health_check {
+  healthy_threshold   = 3
+  unhealthy_threshold = 10
+  timeout             = 5
+  interval            = 10
   path                = "/version"
-  port                = "2379"  
+  port                = "2379"
   }
 }
 
