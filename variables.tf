@@ -1,4 +1,8 @@
-variable "instance_type" {
+variable "bastion_instance_type" {
+  default = "t2.micro"
+}
+
+variable "etcd_instance_type" {
   default = "t2.micro"
 }
 
@@ -26,10 +30,6 @@ variable "dns" {
   }
 }
 
-variable cidr_block {
-  default = "10.0.0.0/16"
-}
-
 variable "cluster_size" {
   default = 3
 }
@@ -38,6 +38,9 @@ variable "keypair_name" {
   default = "sean-keypair"
 }
 
+variable "keypair_file" {
+  default = "terraformec2.pem"
+}
 variable "ami" {
   type = map(string)
 

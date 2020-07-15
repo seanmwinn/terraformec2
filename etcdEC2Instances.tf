@@ -3,9 +3,9 @@ etcd instances that reside in private networks */
 
 resource "aws_instance" "bastion" {
   ami                         = "${var.ami["bastion"]}"
-  instance_type               = "t2.micro"
+  instance_type               = "${var.bastion_instance_type}"
   associate_public_ip_address = true
-  key_name = "${var.keypair_name}r"
+  key_name = "${var.keypair_name}"
   subnet_id = "${aws_subnet.bastion.id}"
   vpc_security_group_ids = ["${aws_security_group.default.id}"]
   source_dest_check = false
@@ -20,10 +20,10 @@ Then use the bastion host to SSH into the instances and execute the bootstrap sc
 
 resource "aws_instance" "etcd1" {
   ami           = "${var.ami["etcd"]}"
-  instance_type = "t2.micro"
-  key_name = "${var.keypair_name}r"
+  instance_type = "${var.etcd_instance_type}"
+  key_name = "${var.keypair_name}"
 
-  depends_on        = ["aws_nat_gateway.etcd-nat-gw"]
+  depends_on        = [aws_nat_gateway.etcd-nat-gw]
 
   network_interface {
     network_interface_id = "${aws_network_interface.etcd1-eth0.id}"
@@ -44,7 +44,7 @@ resource "aws_instance" "etcd1" {
     type = "ssh"
     user = "ubuntu"
     timeout = "2m"
-    private_key = "${file("${path.module}/terraformec2.pem")}"
+    private_key = "${file("${path.module}/${var.keypair_file}")}"
     agent = false
 
     bastion_host = "${aws_instance.bastion.public_ip}"
@@ -67,10 +67,10 @@ resource "aws_instance" "etcd1" {
 
 resource "aws_instance" "etcd2" {
   ami           = "${var.ami["etcd"]}"
-  instance_type = "t2.micro"
-  key_name = "${var.keypair_name}r"
+  instance_type = "${var.etcd_instance_type}"
+  key_name = "${var.keypair_name}"
 
-  depends_on        = ["aws_nat_gateway.etcd-nat-gw"]
+  depends_on        = [aws_nat_gateway.etcd-nat-gw]
 
   network_interface {
     network_interface_id = "${aws_network_interface.etcd2-eth0.id}"
@@ -91,7 +91,7 @@ resource "aws_instance" "etcd2" {
     type = "ssh"
     user = "ubuntu"
     timeout = "2m"
-    private_key = "${file("${path.module}/terraformec2.pem")}"
+    private_key = "${file("${path.module}/${var.keypair_file}")}"
     agent = false
 
     bastion_host = "${aws_instance.bastion.public_ip}"
@@ -115,9 +115,9 @@ resource "aws_instance" "etcd2" {
 
 resource "aws_instance" "etcd3" {
   ami           = "${var.ami["etcd"]}"
-  instance_type = "t2.micro"
-  key_name = "${var.keypair_name}r"
-  depends_on        = ["aws_nat_gateway.etcd-nat-gw"]
+  instance_type = "${var.etcd_instance_type}"
+  key_name = "${var.keypair_name}"
+  depends_on        = [aws_nat_gateway.etcd-nat-gw]
 
   network_interface {
     network_interface_id = "${aws_network_interface.etcd3-eth0.id}"
@@ -138,7 +138,7 @@ resource "aws_instance" "etcd3" {
     type = "ssh"
     user = "ubuntu"
     timeout = "2m"
-    private_key = "${file("${path.module}/terraformec2.pem")}"
+    private_key = "${file("${path.module}/${var.keypair_file}")}"
     agent = false
 
     bastion_host = "${aws_instance.bastion.public_ip}"

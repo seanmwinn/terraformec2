@@ -8,7 +8,7 @@ resource "aws_eip" "nat-eip" {
 resource "aws_nat_gateway" "etcd-nat-gw" {
   allocation_id = "${aws_eip.nat-eip.id}"
   subnet_id = "${aws_subnet.bastion.id}"
-  depends_on = ["aws_internet_gateway.default"]
+  depends_on = [aws_internet_gateway.default]
 }
 
 # Create a route table object for the private etcd clusters to use the NAT gateway
