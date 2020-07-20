@@ -1,7 +1,7 @@
 # Create a default security group - ideally lock this down
 resource "aws_security_group" "default" {
   name = "etcdclustersg"
-  vpc_id = "${aws_vpc.etcd.id}"
+  vpc_id = aws_vpc.eks.id
 
   ingress {
     from_port = 0

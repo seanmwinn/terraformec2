@@ -2,15 +2,15 @@
 etcd instances that reside in private networks */
 
 resource "aws_instance" "bastion" {
-  ami                         = "${var.ami["bastion"]}"
-  instance_type               = "${var.bastion_instance_type}"
+  ami                         = var.ami["bastion"]
+  instance_type               = var.bastion_instance_type
   associate_public_ip_address = true
-  key_name = "${var.keypair_name}"
-  subnet_id = "${aws_subnet.bastion.id}"
-  vpc_security_group_ids = ["${aws_security_group.default.id}"]
+  key_name = var.keypair_name
+  subnet_id = aws_subnet.bastion.id
+  vpc_security_group_ids = [aws_security_group.default.id]
   source_dest_check = false
   tags = {
-    Name = "bastion"
+    Name = "${var.environment}-${var.role}-bastion"
   }
 }
 
@@ -19,14 +19,14 @@ Then use the bastion host to SSH into the instances and execute the bootstrap sc
 
 
 resource "aws_instance" "etcd1" {
-  ami           = "${var.ami["etcd"]}"
-  instance_type = "${var.etcd_instance_type}"
-  key_name = "${var.keypair_name}"
+  ami           = var.ami["etcd"]
+  instance_type = var.etcd_instance_type
+  key_name = var.keypair_name
 
   depends_on        = [aws_nat_gateway.etcd-nat-gw]
 
   network_interface {
-    network_interface_id = "${aws_network_interface.etcd1-eth0.id}"
+    network_interface_id = aws_network_interface.etcd1-eth0.id
     device_index         = 0
   }
 
@@ -35,45 +35,45 @@ resource "aws_instance" "etcd1" {
   }
 
   tags = {
-    Name = "etcd1"
+    Name = "${var.environment}-${var.role}-etcd1"
   }
 
     connection {
-    host = "${aws_instance.etcd1.private_ip}"
+    host = aws_instance.etcd1.private_ip
     port = "22"
     type = "ssh"
     user = "ubuntu"
     timeout = "2m"
-    private_key = "${file("${path.module}/${var.keypair_file}")}"
+    private_key = file("${path.module}/${var.keypair_file}")
     agent = false
 
-    bastion_host = "${aws_instance.bastion.public_ip}"
+    bastion_host = aws_instance.bastion.public_ip
     bastion_port = "22"
     bastion_user = "core"
 }
 
   provisioner "file" {
-    source      = "script.sh"
-    destination = "/tmp/script.sh"
+    source      = "${var.environment}-${var.role}-script.sh"
+    destination = "/tmp/${var.environment}-${var.role}-script.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/script.sh",
-      "/tmp/script.sh",
+      "chmod +x /tmp/${var.environment}-${var.role}-script.sh",
+      "/tmp/${var.environment}-${var.role}-script.sh",
     ]
   }
 }
 
 resource "aws_instance" "etcd2" {
-  ami           = "${var.ami["etcd"]}"
-  instance_type = "${var.etcd_instance_type}"
-  key_name = "${var.keypair_name}"
+  ami           = var.ami["etcd"]
+  instance_type = var.etcd_instance_type
+  key_name = var.keypair_name
 
   depends_on        = [aws_nat_gateway.etcd-nat-gw]
 
   network_interface {
-    network_interface_id = "${aws_network_interface.etcd2-eth0.id}"
+    network_interface_id = aws_network_interface.etcd2-eth0.id
     device_index         = 0
   }
 
@@ -82,45 +82,45 @@ resource "aws_instance" "etcd2" {
   }
 
   tags = {
-    Name = "etcd2"
+    Name = "${var.environment}-${var.role}-etcd2"
   }
 
       connection {
-    host = "${aws_instance.etcd2.private_ip}"
+    host = aws_instance.etcd2.private_ip
     port = "22"
     type = "ssh"
     user = "ubuntu"
     timeout = "2m"
-    private_key = "${file("${path.module}/${var.keypair_file}")}"
+    private_key = file("${path.module}/${var.keypair_file}")
     agent = false
 
-    bastion_host = "${aws_instance.bastion.public_ip}"
+    bastion_host = aws_instance.bastion.public_ip
     bastion_port = "22"
     bastion_user = "core"
 }
 
   provisioner "file" {
-    source      = "script.sh"
-    destination = "/tmp/script.sh"
+    source      = "${var.environment}-${var.role}-script.sh"
+    destination = "/tmp/${var.environment}-${var.role}-script.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/script.sh",
-      "/tmp/script.sh",
+      "chmod +x /tmp/${var.environment}-${var.role}-script.sh",
+      "/tmp/${var.environment}-${var.role}-script.sh",
     ]
   }
 
 }
 
 resource "aws_instance" "etcd3" {
-  ami           = "${var.ami["etcd"]}"
-  instance_type = "${var.etcd_instance_type}"
-  key_name = "${var.keypair_name}"
+  ami           = var.ami["etcd"]
+  instance_type = var.etcd_instance_type
+  key_name = var.keypair_name
   depends_on        = [aws_nat_gateway.etcd-nat-gw]
 
   network_interface {
-    network_interface_id = "${aws_network_interface.etcd3-eth0.id}"
+    network_interface_id = aws_network_interface.etcd3-eth0.id
     device_index         = 0
   }
 
@@ -129,33 +129,44 @@ resource "aws_instance" "etcd3" {
   }
 
   tags = {
-    Name = "etcd3"
+    Name = "${var.environment}-${var.role}-etcd3"
   }
 
       connection {
-    host = "${aws_instance.etcd3.private_ip}"
+    host = aws_instance.etcd3.private_ip
     port = "22"
     type = "ssh"
     user = "ubuntu"
     timeout = "2m"
-    private_key = "${file("${path.module}/${var.keypair_file}")}"
+    private_key = file("${path.module}/${var.keypair_file}")
     agent = false
 
-    bastion_host = "${aws_instance.bastion.public_ip}"
+    bastion_host = aws_instance.bastion.public_ip
     bastion_port = "22"
     bastion_user = "core"
 }
 
   provisioner "file" {
-    source      = "script.sh"
-    destination = "/tmp/script.sh"
+    source      = "${var.environment}-${var.role}-script.sh"
+    destination = "/tmp/${var.environment}-${var.role}-script.sh"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/script.sh",
-      "/tmp/script.sh",
+      "chmod +x /tmp/${var.environment}-${var.role}-script.sh",
+      "/tmp/${var.environment}-${var.role}-script.sh",
     ]
   }
 
+}
+
+output "bastion-ipv4-address" {
+  value = aws_instance.bastion.public_ip
+}
+
+
+output "ETCD_ENDPOINTS" {
+  value = ["${aws_instance.etcd1.private_ip}:2379",
+           "${aws_instance.etcd2.private_ip}:2379",
+           "${aws_instance.etcd3.private_ip}:2379"]
 }
